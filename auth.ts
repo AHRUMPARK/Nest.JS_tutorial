@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { User } from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
 import postgres from "postgres";
+import { use } from "react";
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: "require" });
 
@@ -13,6 +14,7 @@ const sql = postgres(process.env.POSTGRES_URL!, { ssl: "require" });
 async function getUser(email: string): Promise<User | undefined> {
   try {
     const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`;
+    console.log("Users found:", user); // 데이터베이스에서 찾은 사용자 출력
     return user[0];
   } catch (error) {
     console.error("Failed to fetch user:", error);
@@ -23,22 +25,25 @@ async function getUser(email: string): Promise<User | undefined> {
 export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
-    // 자격 증명을 검증한 후
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(6) })
-          .safeParse(credentials);
+          .object({
+            email: z.string().email(),
+            password: z.string().min(6),
+          })
+          .safeParse({
+            email: credentials?.email,
+            password: credentials?.password,
+          });
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
           const user = await getUser(email);
           if (!user) return null;
           const passwordsMatch = await bcrypt.compare(password, user.password);
-
           if (passwordsMatch) return user;
         }
-
         console.log("Invalid credentials");
         return null;
       },

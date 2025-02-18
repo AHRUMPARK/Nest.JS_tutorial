@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 
-// NextAuth.js를 객체로 초기화 authConfig하고 속성
 export default NextAuth(authConfig).auth;
 
 export const config = {

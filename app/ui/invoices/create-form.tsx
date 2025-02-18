@@ -1,7 +1,4 @@
 "use client";
-// 두 가지 인수를 사용합니다 (action, initialState).
-// 두 가지 값을 반환합니다. [state, formAction]- 양식 상태 및 양식이 제출될 때 호출될 함수입니다.
-import { useActionState } from "react";
 
 import { CustomerField } from "@/app/lib/definitions";
 import Link from "next/link";
@@ -13,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@/app/ui/button";
 import { createInvoice, State } from "@/app/lib/actions";
+import { useActionState } from "react";
 
 export default function Form({ customers }: { customers: CustomerField[] }) {
   const initialState: State = { message: null, errors: {} };

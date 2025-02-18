@@ -17,7 +17,7 @@ const sql = postgres(process.env.POSTGRES_URL!, { ssl: "require" });
 const FormSchema = z.object({
   id: z.string(),
   customerId: z.string({
-    invalid_type_error: "Please select a customer.", // zod 사용하여 폼 데이터 검증
+    invalid_type_error: "Please select a customer.",
   }),
   amount: z.coerce
     .number()
@@ -53,15 +53,22 @@ export async function createInvoice(prevState: State, formData: FormData) {
     };
   }
 
-  const { customerId, amount, status } = CreateInvoice.parse({
-    customerId: formData.get("customerId"),
-    amount: formData.get("amount"),
-    status: formData.get("status"),
-  });
-  // JavaScript 부동 소수점 오류를 없애고 정확성을 높이기 위해 데이터베이스에 화폐 가치를 센트 단위로 저장하는 것이 좋습니다.
+  // Prepare data for insertion into the database
+  const { customerId, amount, status } = validatedFields.data;
   const amountInCents = amount * 100;
-  // 날짜 생성 송장 생성 날짜에 대해 "YYYY-MM-DD" 형식
   const date = new Date().toISOString().split("T")[0];
+
+  // const { customerId, amount, status } = CreateInvoice.parse({
+  //   customerId: formData.get("customerId"),
+  //   amount: formData.get("amount"),
+  //   status: formData.get("status"),
+  // });
+
+  // // JavaScript 부동 소수점 오류를 없애고 정확성을 높이기 위해 데이터베이스에 화폐 가치를 센트 단위로 저장하는 것이 좋습니다.
+  // const amountInCents = amount * 100;
+  // // 날짜 생성 송장 생성 날짜에 대해 "YYYY-MM-DD" 형식
+  // const date = new Date().toISOString().split("T")[0];
+
   // 이제 데이터베이스에 필요한 모든 값이 있으므로 SQL 쿼리를 만들어 새 송장을 데이터베이스에 삽입하고 변수를 전달
   try {
     await sql`
